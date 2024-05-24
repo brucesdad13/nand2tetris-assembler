@@ -72,107 +72,76 @@ public class Parser {
 
     // Get the next command per API
     void advance() {
-        currentCommand = line;
+        currentCommand = line; // line already has the next command
     }
 
     // Get the type of command per API
     int commandType() {
         if (currentCommand.startsWith("@")) // A command
-        {
             return A_COMMAND;
-        }
         else if (currentCommand.startsWith("(")) // label pseudo-command
-        {
             return L_COMMAND;
-        }
         else // assume C command
-        {
             return C_COMMAND;
-        }
     }
 
     // Get the symbol or decimal of the current command
     String symbol() {
         if (commandType() == A_COMMAND)
-        {
             return currentCommand.substring(1); // remove the @
-        }
         else if (commandType() == L_COMMAND)
-        {
             return currentCommand.substring(1, currentCommand.length() - 1); // remove the parentheses
-        }
         else if (commandType() != A_COMMAND && commandType() != L_COMMAND)
-        {
             throw new IllegalArgumentException("Command is not an A or L command"); // not valid for C commands
-        }
-        return null;
+
+        return null; // no symbol or decimal FIXME: can this be null?
     }
 
     // Get the dest mnemonic in the current C-command
     String dest() {
         if (commandType() == C_COMMAND)
-        {
             if (currentCommand.contains("="))
-            {
                 return currentCommand.split("=")[0]; // the destination is before the equals sign
-            }
-        }
-        else
-        {
-            // throw an exception
+        else // throw an exception
             if (commandType() != C_COMMAND)
-            {
                 throw new IllegalArgumentException("Command is not a C-command"); // not valid for A or L commands
-            }
-        }
-        return null;
+
+        return null; // no destination
     }
 
     // Get the comp mnemonic in the current C-command
     // API Note: Either the dest or jump fields may be empty
     String comp() {
         String command = "";
-        if (commandType() == C_COMMAND)
-        {
+        if (commandType() == C_COMMAND) {
             if (currentCommand.contains("=")) // if the command has a destination field
-            {
                 command = currentCommand.split("=")[1]; // isolate the computation from the destination field
-            }
+
             if (currentCommand.contains(";")) // if the command has a jump field
-            {
                 command = currentCommand.split(";")[0]; // isolate the computation from the jump field
-            }
+
             return command; // return the computation expression
         }
         else
         {
             // throw an exception; comp is only valid for C commands
             if (commandType() != C_COMMAND)
-            {
                 throw new IllegalArgumentException("Command is not a C-command"); // not valid for A or L commands
-            }
         }
-        return null;
+        return null; // no computation
     }
 
     // Get the jump mnemonic in the current C-command
     String jump() {
         if (commandType() == C_COMMAND)
-        {
             if (currentCommand.contains(";"))
-            {
                 return currentCommand.split(";")[1];
-            }
-        }
         else
-        {
             // throw an exception
             if (commandType() != C_COMMAND)
-            {
                 throw new IllegalArgumentException("Command is not a C-command"); // not valid for A or L commands
-            }
-        }
-        return null;
+
+        return null; // no jump
     }
 
     // Close the Hack Assembler input file

@@ -82,42 +82,43 @@ public class Main {
         try
         {
             outputPath.getFileSystem().provider().checkAccess(outputPath, AccessMode.WRITE);
-            System.out.println("File exists and is writable");
+            Debug.println("File exists and is writable");
         }
         catch (IOException e)
         {
-            System.out.println("I/O Exception: " + e);
+            Debug.println("I/O Exception: " + e);
         }
 
         // First pass: build the symbol table
         Parser parser = new Parser(args[0]); // args[0] is the input file
-        parseInput(parser, outputPath, true);
+        parseInput(parser, outputPath, true); // true means this is the first pass
 
         // Second pass: generate the machine code and write it to the output file
         // new parser object to force rewind the input file to the beginning
-        parser = new Parser(args[0]);
-        parseInput(parser, outputPath, false);
+        parser = new Parser(args[0]); // args[0] is the input file
+        parseInput(parser, outputPath, false); // false means this is not the first pass
 
-        // Close the file I/O
+        // Close the Hack Assembler input file and exit
         parser.close();
     }
 
     // create a function that parses the input file, takes a boolean parameter of whether this is the first pass or not
     // on the first pass, build the symbol table, otherwise generate machine code
     public static void parseInput(Parser parser, Path outputPath, boolean firstPass) {
-        int lineNumber = 0;
-        Code code = new Code();
+        SymbolTable symbolTable = new SymbolTable(); // instantiate the SymbolTable class
+        Code code = new Code(); // instantiate the Code class
+        BufferedWriter writer = null; // output file writer
+        int lineNumber = 0; // line number counter initialized to 0
         String binary = ""; // store the binary machine code
-        BufferedWriter writer = null;
-        SymbolTable symbolTable = new SymbolTable();
 
         if (firstPass)
         {
-            System.out.println("First pass: build the symbol table");
+            Debug.println("First pass: build the symbol table"); // FIXME: debugging
         }
         else
         {
-            System.out.println("Second pass: generate the machine code");
+            Debug.println("Second pass: generate the machine code"); // FIXME: debugging
+
             // open the output file for writing
             try {
                 writer = new BufferedWriter(new FileWriter(outputPath.toString()));
@@ -128,35 +129,32 @@ public class Main {
 
         while (parser.hasMoreCommands())
         {
-            parser.advance();
-            System.out.print(lineNumber + ": ");
-            System.out.print(parser.currentCommand);
-            // get the type of command
-            //System.out.println("; //Command type " + parser.commandType());
+            parser.advance(); // advance to the next command in the file starting from line 0
+
+            Debug.print(lineNumber + ": ");
+            Debug.print(parser.currentCommand);
+
             if (parser.commandType() == Parser.A_COMMAND)
             {
-                System.out.println(" // A-instruction; address = " + parser.symbol());
+                Debug.println(" // A-instruction; address = " + parser.symbol()); // FIXME: debugging
+
                 // if this is the first pass and the command is an A-instruction
                 // add the symbol to the symbol table
                 if (firstPass)
                 {
-                    // throw unimplemented exception
-                    //throw new UnsupportedOperationException("Not implemented yet");
                     // if the symbol is a number, ignore it
                     if (parser.symbol().matches("\\d+"))
-                    {
                         continue;
-                    }
-                    // if the symbol is a label, add it to the symbol table
-                    symbolTable.addEntry(parser.symbol(), lineNumber);
+
+                    symbolTable.addEntry(parser.symbol(), lineNumber); // add label to the symbol table
                 }
-                else
+                else // subsequent pass
                 {
                     // if this is the second pass, generate the machine code
                     // if the symbol is a number, convert it to binary
                     if (parser.symbol().matches("\\d+"))
                     {
-                        binary = Integer.toBinaryString(Integer.parseInt(parser.symbol()));
+                        binary = Integer.toBinaryString(Integer.parseInt(parser.symbol())); // convert the number to binary
                     }
                     else
                     {
@@ -164,20 +162,25 @@ public class Main {
                         // and convert it to binary
                         binary = Integer.toBinaryString(symbolTable.getAddress(parser.symbol()));
                     }
-                    // pad the binary number with leading zeros to 15 bits
-                    binary = "0".repeat(16 - binary.length()) + binary;
-                    System.out.println(" // Machine code: " + binary);
+                    // Hack ML instruction MSB 0 means A-instruction plus 15-bit address
+                    binary = "0" + "0".repeat(15 - binary.length()) + binary; // pad with leading zeros to 15 bits
+
+                    Debug.println(" // Machine code: " + binary); // FIXME: debugging
                 }
             }
             else if (parser.commandType() == Parser.C_COMMAND)
             {
-                System.out.println(" // C-instruction; " + parser.dest() + "=" + parser.comp() + ";" + parser.jump());
+                Debug.println(" // C-instruction; " + parser.dest() + "=" + parser.comp() + ";" + parser.jump()); // FIXME: debugging
+
+                // MSB 1 means C-instruction, next two bits are 1 by convention and unused/ignored
                 binary = "111" + code.comp(parser.comp()) + code.dest(parser.dest()) + code.jump(parser.jump());
-                System.out.println(" // Machine code: " + binary);
+
+                Debug.println(" // Machine code: " + binary); // FIXME: debugging
             }
             else if (parser.commandType() == Parser.L_COMMAND)
             {
-                System.out.println(" // Label; " + parser.symbol());
+                Debug.println(" // Label; " + parser.symbol()); // FIXME: debugging
+
                 // if this is the first pass and the command is a label
                 // add the label to the symbol table with the current line number
                 if (firstPass)
@@ -188,23 +191,27 @@ public class Main {
                         symbolTable.addEntry(parser.symbol(), lineNumber);
                 // else ignore the label on subsequent passes
             }
+
+            // Append the binary machine code to the output file
             try {
                 if (writer != null)
                 {
-                    System.out.println("Writing to file: " + binary);
+                    Debug.println("Writing to file: " + binary); // FIXME: debugging
+
                     writer.write(binary);
                     writer.newLine();
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            lineNumber++;
+
+            lineNumber++; // Increment the line number (whitespace and comments are not counted)
         }
 
         // print symbol table for debugging // FIXME: hide output if not debugging
-        if (firstPass)
+        if (Debug.DEBUG_MODE && firstPass)
         {
-            System.out.println("Symbol table:");
+            Debug.println("Symbol table:");
             symbolTable.printTable();
         }
 
