@@ -66,106 +66,16 @@
  */
 
 import java.nio.file.*;
-import java.io.IOException;
+import java.io.*;
 
 public class Main {
     public static void main(String[] args) {
-        /*
-        //int instruction = 0b1110110000010000; // C instruction
-        int instruction = 0b1111010011110000;
-        //int instruction = 0b1110000111110000; // C instruction
-        //int instruction = 0b0101101110100000; // A instruction
-        // print whether this is an A instruction or a C instruction in text
-        System.out.println("Instruction type: " + (instruction >> 15 == 0 ? "A" : "C"));
-        // if this is an A instruction print the 15-bit address in binary and exit
-        if (instruction >> 15 == 0) {
-            System.out.println("Address: " + Integer.toBinaryString(instruction & 0b0111111111111111));
-            return;
-        } else {
-            // print the 3-bit destination register control bit representation as text
-            int destControl = (instruction >> 3) & 0b111;
-            switch (destControl) {
-                case 0b000 -> System.out.print("null");
-                case 0b001 -> System.out.print("M");
-                case 0b010 -> System.out.print("D");
-                case 0b011 -> System.out.print("MD");
-                case 0b100 -> System.out.print("A");
-                case 0b101 -> System.out.print("AM");
-                case 0b110 -> System.out.print("AD");
-                case 0b111 -> System.out.print("AMD");
-                default -> System.out.println("Unknown");
-            }
-            System.out.print("=");
-            // if this is a C instruction print the 6-bit ALU control bit representation as text
-            // a-bit (instruction[12]) determines if the ALU control bits are for A or M
-            int aBit = (instruction >> 12) & 0b1;
-            int aluControl = (instruction >> 6) & 0b111111;
-            switch (aluControl) {
-                case 0b101010 -> System.out.print("0");
-                case 0b111111 -> System.out.print("1");
-                case 0b111010 -> System.out.print("-1");
-                case 0b001100 -> System.out.print("D");
-                case 0b110000 -> System.out.print((aBit == 0 ? "A" : "M"));
-                case 0b001101 -> System.out.print("!D");
-                case 0b110001 -> System.out.print((aBit == 0 ? "!A" : "!M"));
-                case 0b001111 -> System.out.print("-D");
-                case 0b110011 -> System.out.print((aBit == 0 ? "-A" : "-M"));
-                case 0b011111 -> System.out.print("D+1");
-                case 0b110111 -> System.out.print((aBit == 0 ? "A+1" : "M+1"));
-                case 0b001110 -> System.out.print("D-1");
-                case 0b110010 -> System.out.print((aBit == 0 ? "A-1" : "M-1"));
-                case 0b000010 -> System.out.print("D+A");
-                case 0b010011 -> System.out.print("D-A");
-                case 0b000111 -> System.out.print("A-D");
-                case 0b000000 -> System.out.print("D&A");
-                case 0b010101 -> System.out.print("D|A");
-                default -> System.out.println("Unknown");
-            }
-            System.out.println();
-            // print the 3-bit jump control bit representation as text
-            int jumpControl = instruction & 0b111;
-            switch (jumpControl) {
-                case 0b000 -> System.out.println("Jump Control: " + "null");
-                case 0b001 -> System.out.println("Jump Control: " + "JGT");
-                case 0b010 -> System.out.println("Jump Control: " + "JEQ");
-                case 0b011 -> System.out.println("Jump Control: " + "JGE");
-                case 0b100 -> System.out.println("Jump Control: " + "JLT");
-                case 0b101 -> System.out.println("Jump Control: " + "JNE");
-                case 0b110 -> System.out.println("Jump Control: " + "JLE");
-                case 0b111 -> System.out.println("Jump Control: " + "JMP");
-                default -> System.out.println("Jump Control: " + "Unknown");
-            }
-        }
-         */
-
+        // Ensure the input file and output file are provided as command line arguments
         if (args.length != 2)
         {
             System.out.println("Usage: java Main <input file> <output file>");
             return;
         }
-
-        // Parse the input file
-        Parser parser = new Parser(args[0]); // args[0] is the input file
-        int lineNumber = 0;
-        while (parser.hasMoreCommands())
-        {
-            parser.advance();
-            System.out.print(lineNumber + ": ");
-            System.out.print(parser.currentCommand);
-            // get the type of command
-            System.out.println("; //Command type " + parser.commandType());
-            lineNumber++;
-        }
-
-        // First pass: build the symbol table
-        // skip for now
-
-        // Second pass: generate the machine code
-        // proof of concept parse a set of hardcoded assembly language instructions
-        // and output the machine code to the standard output
-        // new parser object
-
-        // Write the machine code to the output file
 
         // Ensure the output file exists and is writable
         Path outputPath = Paths.get(args[1]);
@@ -179,8 +89,133 @@ public class Main {
             System.out.println("I/O Exception: " + e);
         }
 
+        // First pass: build the symbol table
+        Parser parser = new Parser(args[0]); // args[0] is the input file
+        parseInput(parser, outputPath, true);
+
+        // Second pass: generate the machine code and write it to the output file
+        // new parser object to force rewind the input file to the beginning
+        parser = new Parser(args[0]);
+        parseInput(parser, outputPath, false);
 
         // Close the file I/O
+        parser.close();
+    }
 
+    // create a function that parses the input file, takes a boolean parameter of whether this is the first pass or not
+    // on the first pass, build the symbol table, otherwise generate machine code
+    public static void parseInput(Parser parser, Path outputPath, boolean firstPass) {
+        int lineNumber = 0;
+        Code code = new Code();
+        String binary = ""; // store the binary machine code
+        BufferedWriter writer = null;
+        SymbolTable symbolTable = new SymbolTable();
+
+        if (firstPass)
+        {
+            System.out.println("First pass: build the symbol table");
+        }
+        else
+        {
+            System.out.println("Second pass: generate the machine code");
+            // open the output file for writing
+            try {
+                writer = new BufferedWriter(new FileWriter(outputPath.toString()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        while (parser.hasMoreCommands())
+        {
+            parser.advance();
+            System.out.print(lineNumber + ": ");
+            System.out.print(parser.currentCommand);
+            // get the type of command
+            //System.out.println("; //Command type " + parser.commandType());
+            if (parser.commandType() == Parser.A_COMMAND)
+            {
+                System.out.println(" // A-instruction; address = " + parser.symbol());
+                // if this is the first pass and the command is an A-instruction
+                // add the symbol to the symbol table
+                if (firstPass)
+                {
+                    // throw unimplemented exception
+                    //throw new UnsupportedOperationException("Not implemented yet");
+                    // if the symbol is a number, ignore it
+                    if (parser.symbol().matches("\\d+"))
+                    {
+                        continue;
+                    }
+                    // if the symbol is a label, add it to the symbol table
+                    symbolTable.addEntry(parser.symbol(), lineNumber);
+                }
+                else
+                {
+                    // if this is the second pass, generate the machine code
+                    // if the symbol is a number, convert it to binary
+                    if (parser.symbol().matches("\\d+"))
+                    {
+                        binary = Integer.toBinaryString(Integer.parseInt(parser.symbol()));
+                    }
+                    else
+                    {
+                        // if the symbol is a label, look it up in the symbol table
+                        // and convert it to binary
+                        binary = Integer.toBinaryString(symbolTable.getAddress(parser.symbol()));
+                    }
+                    // pad the binary number with leading zeros to 15 bits
+                    binary = "0".repeat(16 - binary.length()) + binary;
+                    System.out.println(" // Machine code: " + binary);
+                }
+            }
+            else if (parser.commandType() == Parser.C_COMMAND)
+            {
+                System.out.println(" // C-instruction; " + parser.dest() + "=" + parser.comp() + ";" + parser.jump());
+                binary = "111" + code.comp(parser.comp()) + code.dest(parser.dest()) + code.jump(parser.jump());
+                System.out.println(" // Machine code: " + binary);
+            }
+            else if (parser.commandType() == Parser.L_COMMAND)
+            {
+                System.out.println(" // Label; " + parser.symbol());
+                // if this is the first pass and the command is a label
+                // add the label to the symbol table with the current line number
+                if (firstPass)
+                    // check if the label is already in the symbol table
+                    if (symbolTable.contains(parser.symbol()))
+                        throw new IllegalArgumentException("Label already exists in the symbol table");
+                    else
+                        symbolTable.addEntry(parser.symbol(), lineNumber);
+                // else ignore the label on subsequent passes
+            }
+            try {
+                if (writer != null)
+                {
+                    System.out.println("Writing to file: " + binary);
+                    writer.write(binary);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            lineNumber++;
+        }
+
+        // print symbol table for debugging // FIXME: hide output if not debugging
+        if (firstPass)
+        {
+            System.out.println("Symbol table:");
+            symbolTable.printTable();
+        }
+
+        // Close the Hack Machine Language output file
+        try {
+            if (writer != null)
+            {
+                writer.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
