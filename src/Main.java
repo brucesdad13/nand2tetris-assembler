@@ -143,8 +143,10 @@ public class Main {
                 if (firstPass)
                 {
                     // if the symbol is a number, ignore it
-                    if (parser.symbol().matches("\\d+"))
+                    if (parser.symbol().matches("\\d+")) {
+                        lineNumber++;
                         continue;
+                    }
 
                     symbolTable.addEntry(parser.symbol(), lineNumber); // add label to the symbol table
                 }
@@ -211,7 +213,7 @@ public class Main {
         // print symbol table for debugging // FIXME: hide output if not debugging
         if (Debug.DEBUG_MODE && firstPass)
         {
-            Debug.println("Symbol table:");
+            Debug.println("After first pass, symbol table:");
             symbolTable.printTable();
         }
 
