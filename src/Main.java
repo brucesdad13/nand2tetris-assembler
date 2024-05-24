@@ -186,12 +186,11 @@ public class Main {
                     throw new IllegalArgumentException("Label already exists in the symbol table");
                 else
                     symbolTable.addEntry(parser.symbol(), lineNumber);
-                continue; // don't increment the line number for labels
             }
 
             // Append the binary machine code to the output file
             try {
-                if (writer != null)
+                if (writer != null && parser.commandType() != Parser.L_COMMAND) // ignore labels
                 {
                     Debug.println("Writing to file: " + binary); // FIXME: debugging
 
@@ -202,7 +201,8 @@ public class Main {
                 throw new RuntimeException(e);
             }
 
-            lineNumber++; // Increment the line number (whitespace and comments are not counted)
+            if (parser.commandType() != Parser.L_COMMAND) // ignore labels
+                lineNumber++; // Increment the line number (whitespace and comments are not counted)
         }
 
         // print symbol table for debugging // FIXME: hide output if not debugging
