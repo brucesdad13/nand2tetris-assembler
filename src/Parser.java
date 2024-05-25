@@ -94,7 +94,7 @@ public class Parser {
         else if (commandType() != A_COMMAND && commandType() != L_COMMAND)
             throw new IllegalArgumentException("Command is not an A or L command"); // not valid for C commands
 
-        return null; // no symbol or decimal FIXME: can this be null?
+        return null; // no symbol or decimal
     }
 
     // Get the dest mnemonic in the current C-command
