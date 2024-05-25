@@ -6,11 +6,11 @@
  * 0: A-instruction
  * 1: C-instruction
  * Note: If the opcode is 1 then the next 2 bits are ignored.
- *
+ * <p>
  * The next 6 bits are the ALU control bits. Which can be represented as a truth table
  * The next 3 bits are the destination register control bits. Which can be represented as a truth table
  * The final 3 bits are the jump control bits. Which can be represented as a truth table
- *
+ * <p>
  * c-bits => instruct ALU which function to compute
  * Truth table: instruction[6..11]
  * Computation  c1 c2 c3 c4 c5 c6
@@ -35,7 +35,7 @@
  * | D|A | D|M | 0  1  0  1  0  1
  * +-----+-----+-----------------
  * | a=0 | a=1 <= a-bit value 0 or 1
- *
+ * <p>
  * d-bits => instruct ALU where to store output
  * Truth table: instruction[3..5]
  * mnem.  d1 d2 d3 desc.
@@ -48,6 +48,7 @@
  * AD   | 1  1  0 | A register and D register
  * AMD  | 1  1  1 | A register, RAM[A], and D register
  *        A  D  M
+ * <p>
  * j-bits => specify optional jump condition
  * Truth table: instruction[0..2]
  * mnem.  j1 j2 j3 logic
@@ -59,7 +60,7 @@
  *  JNE | 1  0  1 | if out != 0 jump // Not(zr)
  *  JLE | 1  1  0 | if out <= 0 jump // Or(zr,ng) is equal to zero OR is negative
  *  JMP | 1  1  1 | unconditional jump // true ... PC=A next instruction will be the address stored in A register (already loaded)
- *
+ * <p>
  *  by Charles Stevenson (brucesdad13@gmail.com)
  *  Revision History:
  *  2024-05-24: Initial version
@@ -200,14 +201,14 @@ public class Main {
 
                     Debug.println("Writing to file: " + binary);
 
-                    writer.write(binary);
-                    writer.newLine();
+                    writer.write(binary); // Write the binary Hack machine code as text according to the API spec.
+                    writer.newLine(); // Write a newline character to separate the machine code instructions
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            if (parser.commandType() != Parser.L_COMMAND) // ignore labels
+            if (parser.commandType() != Parser.L_COMMAND) // ignore labels from the line count
                 lineNumber++; // Increment the line number (whitespace, labels, and comments are not counted)
         }
 
