@@ -36,7 +36,7 @@ public class Parser {
     public Parser(String filename) {
         // Ensure the input file exists and is writable
         Path file = Paths.get(filename);
-        InputStream input = null;
+        InputStream input;
         // open the input file for reading
         try
         {
@@ -81,7 +81,6 @@ public class Parser {
      * Advance to the next command in the file by setting
      * the currentCommand to the most recent command line
      * processed by hasMoreCommands()
-     * @return void
      */
     void advance() {
         currentCommand = line; // line already has the next command
@@ -173,7 +172,6 @@ public class Parser {
 
     /**
      * Close the input file
-     * @return void
      */
     public void close() {
         try

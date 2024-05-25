@@ -10,7 +10,6 @@ public class Debug {
     /**
      * Print a message to the console
      * @param message the message to print
-     * @return void
      */
     public static void print(String message) {
         if (DEBUG_MODE) System.out.print(message);
@@ -19,7 +18,6 @@ public class Debug {
     /**
      * Print a message to the console with a newline
      * @param message the message to print
-     * @return void
      */
     public static void println(String message) {
         if (DEBUG_MODE) System.out.println(message);
