@@ -29,6 +29,10 @@ public class Parser {
     public static final int C_COMMAND = 1; // computation command
     public static final int L_COMMAND = 2; // label pseudo-command
 
+    /**
+     * Open the input file and get ready to parse it
+     * @param filename the name of the file to open
+     */
     public Parser(String filename) {
         // Ensure the input file exists and is writable
         Path file = Paths.get(filename);
@@ -46,7 +50,10 @@ public class Parser {
         }
     }
 
-    // Are we finished? Check the file for additional commands
+    /**
+     * Check the file for additional commands
+     * @return boolean true if there are more commands, false if not
+     */
     boolean hasMoreCommands() {
         try
         {
@@ -70,12 +77,20 @@ public class Parser {
         return false;
     }
 
-    // Get the next command per API
+    /**
+     * Advance to the next command in the file by setting
+     * the currentCommand to the most recent command line
+     * processed by hasMoreCommands()
+     * @return void
+     */
     void advance() {
         currentCommand = line; // line already has the next command
     }
 
-    // Get the type of command per API
+    /**
+     * Get the type of command per API
+     * @return int the type of command
+     */
     int commandType() {
         if (currentCommand.startsWith("@")) // A command
             return A_COMMAND;
@@ -85,7 +100,10 @@ public class Parser {
             return C_COMMAND;
     }
 
-    // Get the symbol or decimal of the current command
+    /**
+     * Get the symbol or decimal of the current command
+     * @return String the symbol or decimal
+     */
     String symbol() {
         if (commandType() == A_COMMAND)
             return currentCommand.substring(1); // remove the @
@@ -97,7 +115,10 @@ public class Parser {
         return null; // no symbol or decimal
     }
 
-    // Get the dest mnemonic in the current C-command
+    /**
+     * Get the destination mnemonic in the current C-command
+     * @return String the destination mnemonic
+     */
     String dest() {
         if (commandType() == C_COMMAND)
             if (currentCommand.contains("="))
@@ -109,8 +130,11 @@ public class Parser {
         return null; // no destination
     }
 
-    // Get the comp mnemonic in the current C-command
-    // API Note: Either the dest or jump fields may be empty
+    /**
+     * Get the computation mnemonic for the current C-command
+     * API Note: Either the dest or jump fields may be empty
+     * @return String the computation mnemonic
+     */
     String comp() {
         String command = "";
         if (commandType() == C_COMMAND) {
@@ -131,7 +155,10 @@ public class Parser {
         return null; // no computation
     }
 
-    // Get the jump mnemonic in the current C-command
+    /**
+     * Get the jump mnemonic in the current C-command
+     * @return String the jump mnemonic
+     */
     String jump() {
         if (commandType() == C_COMMAND)
             if (currentCommand.contains(";"))
@@ -144,7 +171,10 @@ public class Parser {
         return null; // no jump
     }
 
-    // Close the Hack Assembler input file
+    /**
+     * Close the input file
+     * @return void
+     */
     public void close() {
         try
         {

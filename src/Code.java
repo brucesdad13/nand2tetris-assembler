@@ -5,8 +5,12 @@
  * 2024-05-24: Initial version
  */
 public class Code {
-    // convert destination into binary per the API truth table
-    // API Note: M register is the RAM[A] register
+    /**
+     * Convert destination into binary per the API truth table
+     * API Note: M register is the RAM[A] register
+     * @param mnemonic the destination mnemonic
+     * @return String the destination binary code
+     */
     public String dest(String mnemonic) {
         switch (mnemonic) {
             case "M": // memory register
@@ -29,8 +33,12 @@ public class Code {
         }
     }
 
-    // convert computation into binary per the Hack Assembly language API table
-    // TODO: make switch more elegant and less redundant by support a-bit
+    /**
+     * Convert computation into binary per the Hack Assembly language API truth table.
+     * TODO: make switch more elegant and less redundant by support a-bit
+     * @param mnemonic the computation mnemonic
+     * @return String the computation binary code
+     */
     public String comp(String mnemonic) {
         switch (mnemonic) {
             case "0": // zero
@@ -95,7 +103,11 @@ public class Code {
         }
     }
 
-    // Convert jump into binary per the Hack Assembly language API truth table.
+    /**
+     * Convert jump into binary per the Hack Assembly language API truth table.
+     * @param mnemonic the jump mnemonic
+     * @return String the jump binary code
+     */
     public String jump(String mnemonic) {
         switch (mnemonic) {
             case "JGT": // if out > 0 jump

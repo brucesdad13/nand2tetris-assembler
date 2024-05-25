@@ -6,9 +6,21 @@
  */
 public class Debug {
     public static boolean DEBUG_MODE = false; // set to true to enable debugging
+
+    /**
+     * Print a message to the console
+     * @param message the message to print
+     * @return void
+     */
     public static void print(String message) {
         if (DEBUG_MODE) System.out.print(message);
     }
+
+    /**
+     * Print a message to the console with a newline
+     * @param message the message to print
+     * @return void
+     */
     public static void println(String message) {
         if (DEBUG_MODE) System.out.println(message);
     }

@@ -69,6 +69,10 @@ import java.nio.file.*;
 import java.io.*;
 
 public class Main {
+    /**
+     * Main entry point for the Hack Assembler
+     * @param args
+     */
     public static void main(String[] args) {
         // Ensure the input file and output file are provided as command line arguments
         if (args.length != 2)

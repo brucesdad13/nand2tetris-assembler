@@ -6,7 +6,16 @@
  */
 import java.util.*;
 public class SymbolTable {
-    // Add the predefined symbols to the table per the API
+    /**
+     * The symbol table is a HashMap that contains the predefined symbols
+     * and their corresponding memory locations. The predefined symbols
+     * are the registers, the memory-mapped screen and keyboard, and the
+     * general purpose registers R0-R15. Additional predefined symbols
+     * include the stack pointer, local, argument, this, and that.
+     * The table is initialized with the predefined symbols and then new
+     * symbols are added as they are encountered in the assembly code.
+     * Reference the Hack Assembler API
+     */
     private Map<String, Integer> table = new HashMap<String, Integer>() {{
         put("SP", 0); // stack pointer
         put("LCL", 1); // local
@@ -33,21 +42,38 @@ public class SymbolTable {
         put("KBD", 24576); // memory-mapped keyboard
     }};
 
-    // Add a new symbol to the table
+    /**
+     * Add a new symbol to the table
+     * @param symbol the symbol to add
+     * @param address the address of the symbol
+     * @return void
+     */
     public void addEntry(String symbol, int address) {
         table.put(symbol, address);
     }
 
-    // Does the symbol table contain the given symbol?
+    /**
+     * Does the symbol table contain the given symbol?
+     * @param symbol the symbol to check
+     * @return boolean true if the symbol is in the table
+     */
     public boolean contains(String symbol) {
         return table.containsKey(symbol);
     }
 
-    // Get the address of the given symbol
+    /**
+     * Get the address of the given symbol
+     * @param symbol the symbol to get the address of
+     * @return int the address of the symbol
+     */
     public int getAddress(String symbol) {
         return table.get(symbol);
     }
 
+    /**
+     * Print the symbol table
+     * @return void
+     */
     public void printTable() {
         // print symbol table sorted by value numerically
         table.entrySet().stream()
