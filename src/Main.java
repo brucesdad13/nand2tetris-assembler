@@ -1,65 +1,16 @@
 /**
  * NAND to Tetris CPU 16-bit assembler. Converts human-readable instructions to 16-bit machine code.
  * Initializes the I/O files and drives the process.
+ * <p>
  * Hack Machine Language reference:
  * The most significant bit is the opcode specifying the instruction type:
  * 0: A-instruction
  * 1: C-instruction
- * Note: If the opcode is 1 then the next 2 bits are ignored.
+ * Note: If the opcode is 1 then the next 2 bits are ignored and set to 1 by convention.
  * <p>
  * The next 6 bits are the ALU control bits. Which can be represented as a truth table
  * The next 3 bits are the destination register control bits. Which can be represented as a truth table
  * The final 3 bits are the jump control bits. Which can be represented as a truth table
- * <p>
- * c-bits => instruct ALU which function to compute
- * Truth table: instruction[6..11]
- * Computation  c1 c2 c3 c4 c5 c6
- * +-----+-----+-----------------
- * |  0  |     | 1  0  1  0  1  0
- * |  1  |     | 1  1  1  1  1  1
- * | -1  |     | 1  1  1  0  1  0
- * |  D  |     | 0  0  1  1  0  0
- * |  A  |  M  | 1  1  0  0  0  0
- * | !D  |     | 0  0  1  1  0  1
- * | !A  | !M  | 1  1  0  0  0  1
- * | -D  |     | 0  0  1  1  1  1
- * | -A  | -M  | 1  1  0  0  1  1
- * | D+1 |     | 0  1  1  1  1  1
- * | A+1 | M+1 | 1  1  0  1  1  1
- * | D-1 |     | 0  0  1  1  1  0
- * | A-1 | M-1 | 1  1  0  0  1  0
- * | D+A | D+M | 0  0  0  0  1  0
- * | D-A | D-M | 0  1  0  0  1  1
- * | A-D | M-D | 0  0  0  1  1  1
- * | D&A | D&M | 0  0  0  0  0  0
- * | D|A | D|M | 0  1  0  1  0  1
- * +-----+-----+-----------------
- * | a=0 | a=1 <= a-bit value 0 or 1
- * <p>
- * d-bits => instruct ALU where to store output
- * Truth table: instruction[3..5]
- * mnem.  d1 d2 d3 desc.
- * null | 0  0  0 | The value is not stored
- *  M   | 0  0  1 | RAM[A]
- *  D   | 0  1  0 | D register
- * MD   | 0  1  1 | RAM[A] and D register
- *  A   | 1  0  0 | A register
- * AM   | 1  0  1 | A register and RAM[A]
- * AD   | 1  1  0 | A register and D register
- * AMD  | 1  1  1 | A register, RAM[A], and D register
- *        A  D  M
- * <p>
- * j-bits => specify optional jump condition
- * Truth table: instruction[0..2]
- * mnem.  j1 j2 j3 logic
- * null | 0  0  0 | no jump // PC++ next instruction will be current PC plus 1
- *  JGT | 0  0  1 | if out > 0 jump // And(Not(zr),Not(ng)) not zero AND not negative
- *  JEQ | 0  1  0 | if out == 0 jump // And(zr,Not(ng)) is equal to zero AND not negative
- *  JGE | 0  1  1 | if out >= 0 jump // Or(zr,Not(ng)) is equal to zero OR is not negative
- *  JLT | 1  0  0 | if out < 0 jump // And(Not(zr),ng) is not zero AND is negative
- *  JNE | 1  0  1 | if out != 0 jump // Not(zr)
- *  JLE | 1  1  0 | if out <= 0 jump // Or(zr,ng) is equal to zero OR is negative
- *  JMP | 1  1  1 | unconditional jump // true ... PC=A next instruction will be the address stored in A register (already loaded)
  * <p>
  *  by Charles Stevenson (brucesdad13@gmail.com)
  *  Revision History:
