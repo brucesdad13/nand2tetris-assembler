@@ -16,7 +16,7 @@ public class SymbolTable {
      * symbols are added as they are encountered in the assembly code.
      * Reference the Hack Assembler API
      */
-    private Map<String, Integer> table = new HashMap<String, Integer>() {{
+    private final Map<String, Integer> table = new HashMap<>() {{
         put("SP", 0); // stack pointer
         put("LCL", 1); // local
         put("ARG", 2); // argument
@@ -46,7 +46,6 @@ public class SymbolTable {
      * Add a new symbol to the table
      * @param symbol the symbol to add
      * @param address the address of the symbol
-     * @return void
      */
     public void addEntry(String symbol, int address) {
         table.put(symbol, address);
@@ -72,7 +71,6 @@ public class SymbolTable {
 
     /**
      * Print the symbol table
-     * @return void
      */
     public void printTable() {
         // print symbol table sorted by value numerically
