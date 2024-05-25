@@ -166,15 +166,12 @@ public class Main {
         if (Debug.DEBUG_MODE) // print symbol table for debugging
         {
             Debug.println("Symbol table:");
-            symbolTable.printTable();
+            symbolTable.printTable(); // print the symbol table
         }
 
         // Close the Hack Machine Language output file
         try {
-            if (writer != null)
-            {
-                writer.close();
-            }
+            if (writer != null) writer.close(); // close the output file
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
