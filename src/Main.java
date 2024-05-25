@@ -75,8 +75,8 @@ public class Main {
         Code code = new Code(); // instantiate the Code class
         BufferedWriter writer = null; // output file writer
         int lineNumber = 0; // line number counter initialized to 0
-        int variableAddress = 16; // variable address counter initialized to 16
-        String binary = ""; // store the binary machine code
+        int variableAddress = 16; // variable address counter initialized to 16 (after general purpose registers)
+        String binary = ""; // text representation of the binary machine code
 
         if (!firstPass) // on the second pass, open the output file for writing
         {
@@ -116,7 +116,7 @@ public class Main {
                     // convert the symbol to binary
                     binary = Integer.toBinaryString(symbolTable.getAddress(parser.symbol()));
                 }
-                // Construct final Hack ML instruction; MSB 0 means A-instruction plus 15-bit address
+                // Construct final Hack ML instruction; MSB 0 means A-instruction plus 15-bit address 0nnnnnnnnnnnnnnn
                 binary = "0" + "0".repeat(15 - binary.length()) + binary; // Pad with leading zeros to 15 bits
 
                 Debug.println(" // Machine code: " + binary);
