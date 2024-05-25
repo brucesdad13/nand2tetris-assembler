@@ -71,7 +71,7 @@ import java.io.*;
 public class Main {
     /**
      * Main entry point for the Hack Assembler
-     * @param args
+     * @param args the command line arguments
      */
     public static void main(String[] args) {
         // Ensure the input file and output file are provided as command line arguments
@@ -95,12 +95,13 @@ public class Main {
 
         SymbolTable symbolTable = new SymbolTable(); // instantiate the SymbolTable class
 
-        // First pass: build the symbol table
+        // First pass: in the first pass we are only concerned with labels e.g. (LOOP)
         Parser parser = new Parser(args[0]); // args[0] is the input file
         parseInput(parser, symbolTable, outputPath, true); // true means this is the first pass
 
         // Second pass: generate the machine code and write it to the output file
         // new parser object to force rewind the input file to the beginning
+        // symbol table is already populated with labels from the first pass
         parser = new Parser(args[0]); // args[0] is the input file
         parseInput(parser, symbolTable, outputPath, false); // false means this is not the first pass
 
@@ -141,38 +142,34 @@ public class Main {
             Debug.print(lineNumber + ": ");
             Debug.println(parser.currentCommand);
 
-            if (parser.commandType() == Parser.A_COMMAND && !firstPass) // ignore on the first pass
+            if (parser.commandType() == Parser.A_COMMAND && !firstPass) // ignore A-commands on the first pass
             {
                 Debug.println(" // A-instruction; address = " + parser.symbol());
 
-                // if the symbol is a number, convert it to binary
+                // if the symbol is a numeric constant, convert it to binary
                 if (parser.symbol().matches("\\d+"))
                 {
                     binary = Integer.toBinaryString(Integer.parseInt(parser.symbol())); // convert the number to binary
                 }
-                else
+                else // if the symbol is a variable or label
                 {
-                    // if the symbol is a label, look it up in the symbol table
-                    // and convert it to binary
-                    if (symbolTable.contains(parser.symbol()))
+                    // if the symbol is missing from the symbol table, add it as a variable
+                    // labels are already in the symbol table from the first pass L_COMMAND stage
+                    if (!symbolTable.contains(parser.symbol()))
                     {
-                        binary = Integer.toBinaryString(symbolTable.getAddress(parser.symbol()));
-                    }
-                    else
-                    {
-                        // if the symbol is a variable, add it to the symbol table
+                        // if the symbol is a variable, add it to the symbol table starting at address 16 (after registers)
                         symbolTable.addEntry(parser.symbol(), variableAddress);
-                        binary = Integer.toBinaryString(variableAddress);
-                        variableAddress++; // increment the variable address counter starting at 16 (after registers)
+                        variableAddress++; // increment the variable address counter
                     }
+                    // convert the symbol to binary
                     binary = Integer.toBinaryString(symbolTable.getAddress(parser.symbol()));
                 }
-                // Hack ML instruction MSB 0 means A-instruction plus 15-bit address
-                binary = "0" + "0".repeat(15 - binary.length()) + binary; // pad with leading zeros to 15 bits
+                // Construct final Hack ML instruction; MSB 0 means A-instruction plus 15-bit address
+                binary = "0" + "0".repeat(15 - binary.length()) + binary; // Pad with leading zeros to 15 bits
 
                 Debug.println(" // Machine code: " + binary);
             }
-            else if (parser.commandType() == Parser.C_COMMAND && !firstPass) // ignore on the first pass
+            else if (parser.commandType() == Parser.C_COMMAND && !firstPass) // ignore C-commands on the first pass
             {
                 Debug.println(" // C-instruction; " + parser.dest() + "=" + parser.comp() + ";" + parser.jump());
 
@@ -181,11 +178,12 @@ public class Main {
 
                 Debug.println(" // Machine code: " + binary);
             }
-            else if (parser.commandType() == Parser.L_COMMAND && firstPass) // only process on the first pass
+            else if (parser.commandType() == Parser.L_COMMAND && firstPass) // only process L-commands on the first pass
             {
                 Debug.println(" // Label; " + parser.symbol());
 
-                // check if the label is already in the symbol table
+                // Check if the label is already in the symbol table
+                // Note: Duplicate label declarations are not allowed and are assumed to be erroneous
                 if (symbolTable.contains(parser.symbol()))
                     throw new IllegalArgumentException("Label already exists in the symbol table");
                 else
@@ -196,6 +194,10 @@ public class Main {
             try {
                 if (writer != null && parser.commandType() != Parser.L_COMMAND) // ignore labels
                 {
+                    // Ensure the binary machine code is 16 bits as a sanity check
+                    if (binary.length() != 16)
+                        throw new IllegalArgumentException("Invalid machine code length: " + binary.length());
+
                     Debug.println("Writing to file: " + binary);
 
                     writer.write(binary);
@@ -206,7 +208,7 @@ public class Main {
             }
 
             if (parser.commandType() != Parser.L_COMMAND) // ignore labels
-                lineNumber++; // Increment the line number (whitespace and comments are not counted)
+                lineNumber++; // Increment the line number (whitespace, labels, and comments are not counted)
         }
 
         if (Debug.DEBUG_MODE) // print symbol table for debugging
